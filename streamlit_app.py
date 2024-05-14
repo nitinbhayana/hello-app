@@ -36,7 +36,7 @@ Create a new, easy to read, and error free title for a given Ecommerce product t
 [/INST]
 ### Suggested Title:"""
 
-    output = query(API_URL_suggest{
+    output = query(API_URL_suggest,{
     "inputs": prompt,
     "parameters": {"return_full_text":False,},
     "options":{"wait_for_model": True}
