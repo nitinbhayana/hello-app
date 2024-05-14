@@ -5,6 +5,7 @@ import streamlit as st
 import requests
 
 API_URL_ner = "https://api-inference.huggingface.co/models/shivanikerai/TinyLlama-1.1B-Chat-v1.0-sku-title-ner-generation-reversed-v1.0"
+API_URL_sugest = "https://api-inference.huggingface.co/models/nitinbhayana/TinyLlama-1.1B-Chat-v1.0-title-suggestion-v1.0"
 headers = {"Authorization": "Bearer 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"}
 
 def query(API_URL,payload):
