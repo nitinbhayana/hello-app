@@ -4,22 +4,23 @@ import streamlit as st
 
 import requests
 
-API_URL = "https://api-inference.huggingface.co/models/shivanikerai/TinyLlama-1.1B-Chat-v1.0-sku-title-ner-generation-reversed-v1.0"
+API_URL_ner = "https://api-inference.huggingface.co/models/shivanikerai/TinyLlama-1.1B-Chat-v1.0-sku-title-ner-generation-reversed-v1.0"
 headers = {"Authorization": "Bearer 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"}
 
-def query(payload):
+def query(API_URL,payload):
     response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()
 
 
 # Function to perform NER on the title
 def ner_for_title(title):
+    
     B_SYS, E_SYS = "<<SYS>>", "<</SYS>>"
     B_INST, E_INST = "[INST]", "[/INST]"
     B_in, E_in = "[Title]", "[/Title]"
     # Format your prompt template
     prompt = f"""{B_INST} {B_SYS} You are a helpful assistant that provides accurate and concise responses. {E_SYS}\nExtract named entities from the given product title. Provide the output in JSON format.\n{B_in} {title.strip()} {E_in}\n{E_INST}\n\n### NER Response:\n{{"{title.split()[0].lower()}"""
-    output = query({
+    output = query(API_URL_ner,{
     "inputs": prompt,
     "parameters": {"return_full_text":False,},
     "options":{"wait_for_model": True}
@@ -27,7 +28,20 @@ def ner_for_title(title):
 
     return eval('{"'+title.split()[0]+output[0]['generated_text'])
 
+def suggest_title(title):
+    prompt=f"""<s>[INST] <<SYS>> You are a helpful assistant that provides accurate and concise responses. <</SYS>>
+Create a new, easy to read, and error free title for a given Ecommerce product title.
+[Title] {title} [/Title]
+[/INST]
+### Suggested Title:"""
 
+    output = query(API_URL_suggest{
+    "inputs": prompt,
+    "parameters": {"return_full_text":False,},
+    "options":{"wait_for_model": True}
+    })
+
+    return output[0]['generated_text']
 
 # Streamlit app layout
 def main():
@@ -63,6 +77,12 @@ def main():
         
         # Display the fully annotated title using HTML to allow styling
         st.markdown(annotated_title, unsafe_allow_html=True)
+
+        st.subheader("Suggested Title")
+        suggest_result = suggest_title(title_input)
+        st.write(suggest_result)
+
+        
         st.subheader("General Parameters")
         st.write("Length of Title           : ", len(title_input))
         st.write("Count of words            : ", len(title_input.split()))
