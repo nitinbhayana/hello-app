@@ -44,7 +44,7 @@ def main():
         #st.write(ner_result)
         # Display the title with NER annotations
         st.subheader("Artificial Intelligence")
-	st.write("created by NB Nitin Bhayana)
+	st.write("created by NB Nitin Bhayana")
         
         # Start from the original title and replace phrases one by one
         annotated_title = title_input
