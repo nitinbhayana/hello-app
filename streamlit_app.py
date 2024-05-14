@@ -77,8 +77,7 @@ def main():
         # Display the fully annotated title using HTML to allow styling
         st.markdown(annotated_title, unsafe_allow_html=True)
 	
-	suggest_result = suggest_title(title_input)
-	st.write(suggest_result)
+
         st.subheader("General Parameters")
         st.write("Length of Title           : ", len(title_input))
         st.write("Count of words            : ", len(title_input.split()))
