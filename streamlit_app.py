@@ -28,7 +28,19 @@ def ner_for_title(title):
 
     return eval('{"'+title.split()[0]+output[0]['generated_text'])
 
+def suggest_title(title):
+	prompt=f"""<s>[INST] <<SYS>> You are a helpful assistant that provides accurate and concise responses. <</SYS>>
+Create a new, easy to read, and error free title for a given Ecommerce product title.
+[Title] {title} [/Title]
+[/INST]
+### Suggested Title:"""
 
+    output = query(API_URL_suggest,{
+    "inputs": prompt,
+    "parameters": {"return_full_text":False,},
+    "options":{"wait_for_model": True}
+    })
+return (output[0]['generated_text'])
 
 # Streamlit app layout
 def main():
@@ -64,6 +76,9 @@ def main():
         
         # Display the fully annotated title using HTML to allow styling
         st.markdown(annotated_title, unsafe_allow_html=True)
+	st.subheader("Suggested Title")
+	suggest_result = suggest_title(title_input)
+	st.write(suggest_result)
         st.subheader("General Parameters")
         st.write("Length of Title           : ", len(title_input))
         st.write("Count of words            : ", len(title_input.split()))
