@@ -50,6 +50,8 @@ def main():
     if st.button("Submit"):
         # Perform NER on the input title
         ner_result = ner_for_title(title_input)
+	suggest_result = suggest_title(title_input)
+	st.write(suggest_result)
         #st.write(ner_result)
         # Display the title with NER annotations
         st.subheader("Artificial Intelligence")
@@ -80,8 +82,7 @@ def main():
         st.write("Count of attributes       : ", len(ner_result))
         st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
         st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
-	suggest_result = suggest_title(title_input)
-	st.write(suggest_result)
+
 
 
 if __name__ == "__main__":
