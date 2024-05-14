@@ -29,11 +29,7 @@ def ner_for_title(title):
     return eval('{"'+title.split()[0]+output[0]['generated_text'])
 
 def suggest_title(title):
-    prompt=f"""<s>[INST] <<SYS>> You are a helpful assistant that provides accurate and concise responses. <</SYS>>
-Create a new, easy to read, and error free title for a given Ecommerce product title.
-[Title] {title} [/Title]
-[/INST]
-### Suggested Title:"""
+    prompt=f"""<s>[INST] <<SYS>> You are a helpful assistant that provides accurate and concise responses. <</SYS>>\nCreate a new, easy to read, and error free title for a given Ecommerce product title.\n[Title] {title} [/Title]\n[/INST]\n### Suggested Title:"""
 
     output = query(API_URL_suggest,{
     "inputs": prompt,
@@ -84,8 +80,8 @@ def main():
         st.write("Count of attributes       : ", len(ner_result))
         st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
         st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
-	    suggest_result = suggest_title(title_input)
-	    st.write(suggest_result)
+	suggest_result = suggest_title(title_input)
+	st.write(suggest_result)
 
 
 if __name__ == "__main__":
