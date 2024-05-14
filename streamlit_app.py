@@ -29,14 +29,15 @@ def ner_for_title(title):
     return eval('{"'+title.split()[0]+output[0]['generated_text'])
 
 def suggest_title(title):
-    prompt=f"""<s>[INST] <<SYS>> You are a helpful assistant that provides accurate and concise responses. <</SYS>>\nCreate a new, easy to read, and error free title for a given Ecommerce product title.\n[Title] {title} [/Title]\n[/INST]\n### Suggested Title:"""
+    
+	prompt=f"""<s>[INST] <<SYS>> You are a helpful assistant that provides accurate and concise responses. <</SYS>>\nCreate a new, easy to read, and error free title for a given Ecommerce product title.\n[Title] {title} [/Title]\n[/INST]\n### Suggested Title:"""
 
-    output = query(API_URL_suggest,{
-    "inputs": prompt,
-    "parameters": {"return_full_text":False,},
-    "options":{"wait_for_model": True}
-    })
-    return (output[0]['generated_text'])
+	output = query(API_URL_suggest,{
+	"inputs": prompt,
+	"parameters": {"return_full_text":False,},
+	"options":{"wait_for_model": True}
+	})
+	return (output[0]['generated_text'])
 
 # Streamlit app layout
 def main():
