@@ -56,7 +56,7 @@ def main():
     if st.button("Submit"):
         # Perform NER on the input title
         ner_result = ner_for_title(title_input)
-	suggest_result = suggest_title(title_input)
+
 
         #st.write(ner_result)
         # Display the title with NER annotations
