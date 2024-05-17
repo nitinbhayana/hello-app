@@ -24,20 +24,7 @@ headers = {"Authorization": "Bearer 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"}
 # nltk.download('punkt')
 # nltk.download('averaged_perceptron_tagger')
 
-def create_gauge(value):
-    fig = go.Figure(go.Indicator(
-        mode = "gauge+number",
-        value = value,
-        gauge = {
-            'axis': {'range': [0, 1]},
-            'bar': {'color': "darkblue"},
-            'steps': [
-                {'range': [0, 0.5], 'color': "lightgray"},
-                {'range': [0.5, 1], 'color': "gray"}
-            ],
-        }
-    ))
-    return fig
+
 
 
 def query(API_URL,payload):
@@ -179,14 +166,9 @@ def main():
         # st.write("Count of attributes       : ", len(ner_result))
         # st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
         # st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
-        st.title("title length score")
-
-        # Simulated variable value
-        variable_value = len_title(title_input) # Example value, you can update this dynamically
-    
-        # Create and display the gauge meter with the variable value
-        fig = create_gauge(variable_value)
-        st.plotly_chart(fig)
-        st.write(len_title(title_input), simplicity_score(title_input),  emphasis_score(title_input)) #duplicacy(title),
+        
+        st.write("Title length score",len_title(title_input))
+        st.write("Title simplicity", simplicity_score(title_input))
+        st.write("Title emphasis",  emphasis_score(title_input)) #duplicacy(title),
 if __name__ == "__main__":
     main()
