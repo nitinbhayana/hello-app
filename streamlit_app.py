@@ -93,7 +93,7 @@ def emphasis_score(title):
     
     else:
         score=0
-    return x,round(score, 2)
+    return round(score, 2)
 
 # Function to perform NER on the title
 def ner_for_title(title):
