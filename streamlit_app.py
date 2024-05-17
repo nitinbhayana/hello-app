@@ -77,7 +77,7 @@ def simplicity_score(title):
 #     return round(score, 2)
 
 def emphasis_score(title):
-    words = word_tokenize(title)
+    words = title.split()
     initial_uppercase_count = sum(1 for word in words if word[0].isupper())
     if initial_uppercase_count > 5:
         score=(1 - (initial_uppercase_count-5) / len(words))
