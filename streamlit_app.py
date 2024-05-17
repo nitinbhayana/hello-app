@@ -5,6 +5,7 @@ import math
 import nltk
 from nltk import pos_tag, word_tokenize
 from collections import Counter
+import plotly.graph_objects as go
 
 
 import requests
@@ -22,39 +23,21 @@ headers = {"Authorization": "Bearer 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"}
 # nltk.download('punkt', download_dir=nltk_data_dir)
 # nltk.download('punkt')
 # nltk.download('averaged_perceptron_tagger')
-def gauge_meter(value, label):
-    st.components.v1.html(
-        f"""
-        <html>
-        <head>
-            <script src="https://cdn.jsdelivr.net/npm/@glidejs/glide"></script>
-            <style>
-                .gauge-container {{
-                    width: 200px;
-                    height: 200px;
-                }}
-            </style>
-        </head>
-        <body>
-            <div id="gauge" class="gauge-container"></div>
-            <script>
-                var gauge = new Glide('#gauge', {{
-                    type: 'radial',
-                    startAt: 0,
-                    endAt: 1,
-                    values: {{ '{label}': {value} }},
-                    colors: ['#FF0000']
-                }}).mount()
-            </script>
-        </body>
-        </html>
-        """
-        ,
-        width=300,
-        height=300,
-        scrolling=False
-    )
 
+def create_gauge(value):
+    fig = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        value = value,
+        gauge = {
+            'axis': {'range': [0, 1]},
+            'bar': {'color': "darkblue"},
+            'steps': [
+                {'range': [0, 0.5], 'color': "lightgray"},
+                {'range': [0.5, 1], 'color': "gray"}
+            ],
+        }
+    ))
+    return fig
 
 
 def query(API_URL,payload):
@@ -196,7 +179,14 @@ def main():
         # st.write("Count of attributes       : ", len(ner_result))
         # st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
         # st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
-        gauge_meter(len_title(title_input), "title_length")
+        st.title("title length score")
+
+        # Simulated variable value
+        variable_value = len_title(title_input) # Example value, you can update this dynamically
+    
+        # Create and display the gauge meter with the variable value
+        fig = create_gauge(variable_value)
+        st.plotly_chart(fig)
         st.write(len_title(title_input), simplicity_score(title_input),  emphasis_score(title_input)) #duplicacy(title),
 if __name__ == "__main__":
     main()
