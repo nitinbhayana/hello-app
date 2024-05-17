@@ -1,5 +1,10 @@
 
 import streamlit as st
+import numpy as np
+import math
+import nltk
+from nltk import pos_tag, word_tokenize
+from collections import Counter
 
 
 import requests
@@ -7,11 +12,70 @@ import requests
 API_URL_ner = "https://api-inference.huggingface.co/models/shivanikerai/TinyLlama-1.1B-Chat-v1.0-sku-title-ner-generation-reversed-v1.0"
 API_URL_suggest = "https://api-inference.huggingface.co/models/nitinbhayana/TinyLlama-1.1B-Chat-v1.0-title-suggestion-v1.0"
 headers = {"Authorization": "Bearer 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"}
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
 
 def query(API_URL,payload):
     response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()
 
+
+def len_title(title):
+    x=len(title)
+    mean,sigma=190.5, 80
+    gaussian_value = np.exp(-np.power(x - mean, 2.) / (2 * np.power(sigma, 2.)))
+    if x < 50 or x > 250:
+        return 0
+    return round(gaussian_value, 2)
+
+def count_words_by_length(words, min_len, max_len=None):
+    if max_len is None:
+        score=sum(1 for word in words if len(word) >= min_len)
+    else:
+        score= sum(1 for word in words if min_len <= len(word) <= max_len)
+    return round(score, 2)
+
+def simplicity_score(title):
+    words=title.split()
+    a = count_words_by_length(words, 1, 3)
+    b = count_words_by_length(words, 4, 6)
+    c = count_words_by_length(words, 7, 10)
+    d = count_words_by_length(words, 11)
+    score= (1-(a+2*b+3*c+4*d)/(10*(a+b+c+d))) * (1 / (1 + math.log((a+b+c+d)+ 1)))
+    return round(score, 2)
+
+def duplicacy(title):
+    # Tokenize the title into words
+    words = word_tokenize(title.lower())
+    
+    # POS tagging
+    pos_tags = pos_tag(words)
+    
+    # Filter out conjunctions (CC tag in Penn Treebank tag set)
+    non_conjunction_words = [word for word, tag in pos_tags if tag != 'CC' or tag != 'IN']
+    
+    # Count the occurrences of each non-conjunction word
+    word_counts = Counter(non_conjunction_words)
+    
+    # Count the duplicates
+    duplicate_non_conjunction_count = sum(1 for count in word_counts.values() if count > 1)
+    
+    total_words=len(non_conjunction_words)
+    
+    if total_words == 0:
+        return 1  # Maximum score if there are no words
+    score = 1 - (duplicate_non_conjunction_count / total_words)
+    
+    return round(score, 2)
+
+def emphasis_score(title):
+    words = word_tokenize(title)
+    initial_uppercase_count = sum(1 for word in words if word[0].isupper())
+    if initial_uppercase_count > 5:
+        score=(1 - (initial_uppercase_count-5) / len(words))
+    else:
+        score=(0.04 * initial_uppercase_count)+0.8 
+    return round(score, 2)
 
 # Function to perform NER on the title
 def ner_for_title(title):
@@ -90,5 +154,6 @@ def main():
         st.write("Count of attributes       : ", len(ner_result))
         st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
         st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
+        st.write(len_title(title), simplicity_score(title), duplicacy(title), emphasis_score(title))
 if __name__ == "__main__":
     main()
