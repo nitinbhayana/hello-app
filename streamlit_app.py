@@ -22,6 +22,40 @@ headers = {"Authorization": "Bearer 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"}
 # nltk.download('punkt', download_dir=nltk_data_dir)
 # nltk.download('punkt')
 # nltk.download('averaged_perceptron_tagger')
+def gauge_meter(value, label):
+    st.components.v1.html(
+        f"""
+        <html>
+        <head>
+            <script src="https://cdn.jsdelivr.net/npm/@glidejs/glide"></script>
+            <style>
+                .gauge-container {{
+                    width: 200px;
+                    height: 200px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div id="gauge" class="gauge-container"></div>
+            <script>
+                var gauge = new Glide('#gauge', {{
+                    type: 'radial',
+                    startAt: 0,
+                    endAt: 1,
+                    values: {{ '{label}': {value} }},
+                    colors: ['#FF0000']
+                }}).mount()
+            </script>
+        </body>
+        </html>
+        """
+        ,
+        width=300,
+        height=300,
+        scrolling=False
+    )
+
+
 
 def query(API_URL,payload):
     response = requests.post(API_URL, headers=headers, json=payload)
@@ -162,6 +196,7 @@ def main():
         # st.write("Count of attributes       : ", len(ner_result))
         # st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
         # st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
+        gauge_meter(len_title(title_input), "title_length")
         st.write(len_title(title_input), simplicity_score(title_input),  emphasis_score(title_input)) #duplicacy(title),
 if __name__ == "__main__":
     main()
