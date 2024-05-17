@@ -12,8 +12,16 @@ import requests
 API_URL_ner = "https://api-inference.huggingface.co/models/shivanikerai/TinyLlama-1.1B-Chat-v1.0-sku-title-ner-generation-reversed-v1.0"
 API_URL_suggest = "https://api-inference.huggingface.co/models/nitinbhayana/TinyLlama-1.1B-Chat-v1.0-title-suggestion-v1.0"
 headers = {"Authorization": "Bearer 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"}
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+
+nltk_data_dir = "./resources/nltk_data_dir/"
+if not os.path.exists(nltk_data_dir):
+    os.makedirs(nltk_data_dir, exist_ok=True)
+nltk.data.path.clear()
+nltk.data.path.append(nltk_data_dir)
+nltk.download("averaged_perceptron_tagger", download_dir=nltk_data_dir)
+nltk.download('punkt', download_dir=nltk_data_dir)
+# nltk.download('punkt')
+# nltk.download('averaged_perceptron_tagger')
 
 def query(API_URL,payload):
     response = requests.post(API_URL, headers=headers, json=payload)
