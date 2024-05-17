@@ -82,12 +82,18 @@ def simplicity_score(title):
 
 def emphasis_score(title):
     words = title.split()
-    initial_uppercase_count = sum(1 for word in words if word[0].isupper())
-    if initial_uppercase_count > 5:
-        score=(1 - (initial_uppercase_count-5) / len(words))
+    uppercase_count = sum(1 for word in words if word[0].isupper())
+    x=uppercase_count/len(words)*100
+    if uppercase_count > 0:
+        if x <= 60:
+            mean, sigma = 60, 30
+        else:
+            mean, sigma = 60, 10
+        score = np.exp(-np.power(x - mean, 2.) / (2 * np.power(sigma, 2.)))
+    
     else:
-        score=(0.04 * initial_uppercase_count)+0.8 
-    return round(score, 2)
+        score=0
+    return x,round(score, 2)
 
 # Function to perform NER on the title
 def ner_for_title(title):
