@@ -157,11 +157,11 @@ def main():
 
         
         st.subheader("General Parameters")
-        st.write("Length of Title           : ", len(title_input))
-        st.write("Count of words            : ", len(title_input.split()))
-        st.write("Count of attributes       : ", len(ner_result))
-        st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
-        st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
-        st.write(len_title(title), simplicity_score(title),  emphasis_score(title)) #duplicacy(title),
+        # st.write("Length of Title           : ", len(title_input))
+        # st.write("Count of words            : ", len(title_input.split()))
+        # st.write("Count of attributes       : ", len(ner_result))
+        # st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
+        # st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
+        st.write(len_title(title_input), simplicity_score(title_input),  emphasis_score(title_input)) #duplicacy(title),
 if __name__ == "__main__":
     main()
