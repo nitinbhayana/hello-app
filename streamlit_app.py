@@ -5,7 +5,7 @@ import math
 import nltk
 from nltk import pos_tag, word_tokenize
 from collections import Counter
-import plotly.graph_objects as go
+
 
 
 import requests
