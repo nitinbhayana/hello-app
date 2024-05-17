@@ -52,29 +52,29 @@ def simplicity_score(title):
     score= (1-(a+2*b+3*c+4*d)/(10*(a+b+c+d))) * (1 / (1 + math.log((a+b+c+d)+ 1)))
     return round(score, 2)
 
-def duplicacy(title):
-    # Tokenize the title into words
-    words = word_tokenize(title.lower())
+# def duplicacy(title):
+#     # Tokenize the title into words
+#     words = word_tokenize(title.lower())
     
-    # POS tagging
-    pos_tags = pos_tag(words)
+#     # POS tagging
+#     pos_tags = pos_tag(words)
     
-    # Filter out conjunctions (CC tag in Penn Treebank tag set)
-    non_conjunction_words = [word for word, tag in pos_tags if tag != 'CC' or tag != 'IN']
+#     # Filter out conjunctions (CC tag in Penn Treebank tag set)
+#     non_conjunction_words = [word for word, tag in pos_tags if tag != 'CC' or tag != 'IN']
     
-    # Count the occurrences of each non-conjunction word
-    word_counts = Counter(non_conjunction_words)
+#     # Count the occurrences of each non-conjunction word
+#     word_counts = Counter(non_conjunction_words)
     
-    # Count the duplicates
-    duplicate_non_conjunction_count = sum(1 for count in word_counts.values() if count > 1)
+#     # Count the duplicates
+#     duplicate_non_conjunction_count = sum(1 for count in word_counts.values() if count > 1)
     
-    total_words=len(non_conjunction_words)
+#     total_words=len(non_conjunction_words)
     
-    if total_words == 0:
-        return 1  # Maximum score if there are no words
-    score = 1 - (duplicate_non_conjunction_count / total_words)
+#     if total_words == 0:
+#         return 1  # Maximum score if there are no words
+#     score = 1 - (duplicate_non_conjunction_count / total_words)
     
-    return round(score, 2)
+#     return round(score, 2)
 
 def emphasis_score(title):
     words = word_tokenize(title)
