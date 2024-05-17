@@ -53,7 +53,7 @@ def simplicity_score(title):
     b = count_words_by_length(words, 4, 6)
     c = count_words_by_length(words, 7, 10)
     d = count_words_by_length(words, 11)
-    score= (1-(3*a+b+2*c+4*d)/(10*(a+b+c+d))) * (1 / (1 + math.log((a+b+c+d)+ 1)))
+    score= (1-(3*a+b+2*c+4*d)/(10*(a+b+c+d))) * (1 / (1 + math.log((a+b+c+d)+ 1)))+0.45
     return round(score, 2)
 
 # def duplicacy(title):
