@@ -1,2 +1,5 @@
 nltk==3.8.1
-
+faiss_cpu
+angle_emb
+pandas
+numpy
