@@ -1,183 +1,286 @@
-import os
 import streamlit as st
-import numpy as np
-import math
-import nltk
-from nltk import pos_tag, word_tokenize
-from collections import Counter
-from angle_emb import AnglE
-import numpy as np
-import faiss  
-
-
-
+import time
+import random
 import requests
+import re
+from openai import OpenAI
+import json
 
-API_URL_ner = "https://api-inference.huggingface.co/models/shivanikerai/TinyLlama-1.1B-Chat-v1.0-sku-title-ner-generation-reversed-v1.0"
-API_URL_suggest = "https://api-inference.huggingface.co/models/nitinbhayana/TinyLlama-1.1B-Chat-v1.0-title-suggestion-v1.0"
-headers = {"Authorization": "Bearer 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"}
+BASE_URL = "http://91.203.132.18:8085"
+client = OpenAI(
+    api_key="Z0M9UX80FZ1I94DIRMG2OGXB1B8WNDS1YXWG4JUF",
+    base_url="https://api.runpod.ai/v2/1anply7r9bug3m/openai/v1",
+    )
 
-# nltk_data_dir = "./resources/nltk_data_dir/"
-# if not os.path.exists(nltk_data_dir):
-#     os.makedirs(nltk_data_dir, exist_ok=True)
-# nltk.data.path.clear()
-# nltk.data.path.append(nltk_data_dir)
-# nltk.download("averaged_perceptron_tagger", download_dir=nltk_data_dir)
-# nltk.download('punkt', download_dir=nltk_data_dir)
-# nltk.download('punkt')
-# nltk.download('averaged_perceptron_tagger')
-
-
-
-
-def query(API_URL,payload):
-    response = requests.post(API_URL, headers=headers, json=payload)
-    return response.json()
-
-
-def len_title(title):
-    x=len(title)
-    mean,sigma=190.5, 80
-    gaussian_value = np.exp(-np.power(x - mean, 2.) / (2 * np.power(sigma, 2.)))
-    if x < 50 or x > 250:
-        return 0
-    return round(gaussian_value, 2)
-
-def count_words_by_length(words, min_len, max_len=None):
-    if max_len is None:
-        score=sum(1 for word in words if len(word) >= min_len)
-    else:
-        score= sum(1 for word in words if min_len <= len(word) <= max_len)
-    return round(score, 2)
-
-def simplicity_score(title):
-    words=title.split()
-    a = count_words_by_length(words, 1, 3)
-    b = count_words_by_length(words, 4, 6)
-    c = count_words_by_length(words, 7, 10)
-    d = count_words_by_length(words, 11)
-    score= (1-(3*a+b+2*c+4*d)/(10*(a+b+c+d))) #* (1 / (1 + math.log((a+b+c+d)+ 1)))+0.45
-    return round(score, 2)
-
-# def duplicacy(title):
-#     # Tokenize the title into words
-#     words = word_tokenize(title.lower())
-    
-#     # POS tagging
-#     pos_tags = pos_tag(words)
-    
-#     # Filter out conjunctions (CC tag in Penn Treebank tag set)
-#     non_conjunction_words = [word for word, tag in pos_tags if tag != 'CC' or tag != 'IN']
-    
-#     # Count the occurrences of each non-conjunction word
-#     word_counts = Counter(non_conjunction_words)
-    
-#     # Count the duplicates
-#     duplicate_non_conjunction_count = sum(1 for count in word_counts.values() if count > 1)
-    
-#     total_words=len(non_conjunction_words)
-    
-#     if total_words == 0:
-#         return 1  # Maximum score if there are no words
-#     score = 1 - (duplicate_non_conjunction_count / total_words)
-    
-#     return round(score, 2)
-
-def emphasis_score(title):
-    words = title.split()
-    uppercase_count = sum(1 for word in words if word[0].isupper())
-    x=uppercase_count/len(words)*100
-    if uppercase_count > 0:
-        if x <= 60:
-            mean, sigma = 60, 30
-        else:
-            mean, sigma = 60, 10
-        score = np.exp(-np.power(x - mean, 2.) / (2 * np.power(sigma, 2.)))
-    
-    else:
-        score=0
-    return round(score, 2)
-
-# Function to perform NER on the title
-def ner_for_title(title):
+def api_1(title):
+    # Simulate a delay for the API call
+    # time.sleep(2)  # Simulate a 2-second delay
+    first_word ="{" + '"'+ title.split()[0].lower()
     
     B_SYS, E_SYS = "<<SYS>>", "<</SYS>>"
     B_INST, E_INST = "[INST]", "[/INST]"
     B_in, E_in = "[Title]", "[/Title]"
-    # Format your prompt template
-    prompt = f"""{B_INST} {B_SYS} You are a helpful assistant that provides accurate and concise responses. {E_SYS}\nExtract named entities from the given product title. Provide the output in JSON format.\n{B_in} {title.strip()} {E_in}\n{E_INST}\n\n### NER Response:\n{{"{title.split()[0].lower()}"""
-    output = query(API_URL_ner,{
+    prompt = f"""{B_INST} {B_SYS} You are a helpful assistant that provides accurate and concise responses. {E_SYS}
+    Extract named entities from the given product title. Provide the output in JSON format.
+    {B_in} {title.strip()} {E_in}\n{E_INST}
+    \n### NER Response:\n {first_word}"""
+    
+    API_URL_ner = "https://api-inference.huggingface.co/models/shivanikerai/TinyLlama-1.1B-Chat-v1.0-sku-title-ner-generation-reversed-v1.0"
+    
+    headers = {"Authorization": "Bearer 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"}
+    payload={
     "inputs": prompt,
-    "parameters": {"return_full_text":False,},
+    "parameters": {"return_full_text":False, "max_new_tokens": 1024},
     "options":{"wait_for_model": True}
-    })
+    }
+    response = requests.post(API_URL_ner, headers=headers, json=payload)
+    generated_text = response.json()[0]["generated_text"]
+    
+    output = first_word + " " + generated_text
+    output = re.sub(' ": "', '": "', output)
+    output_dict = convert_to_dictionary(output)
+    return output_dict
 
-    return eval('{"'+title.split()[0]+output[0]['generated_text'])
+                   
+def api_2(title, count):
+    # Simulate a delay for the API call
+    # time.sleep(2)  # Simulate a 2-second delay
+    search_category_input_data = {
+        "product": title.strip(),
+        "count": count
+        }
+    response = requests.post(f"{BASE_URL}/searchcat/", json=search_category_input_data)
+    category = response.json()
+    my_cat = category[0]
+    return my_cat
 
-def suggest_title(title):
-    prompt=f"""<s>[INST] <<SYS>> You are a helpful assistant that provides accurate and concise responses. <</SYS>>
-Create a new, easy to read, and error free title for a given Ecommerce product title.
-[Title] {title} [/Title]
-[/INST]
-### Suggested Title:"""
+def api_3(category, count):
+    # Simulate a delay for the API call
+    # time.sleep(2)  # Simulate a 2-second delay
+    search_keywords_input_data = {
+        "category": category.strip(),
+        "count": count
+        }
+    response = requests.post(f"{BASE_URL}/searchkeywords/", json=search_keywords_input_data)
+    keywords = response.json()
+    return keywords
 
-    output = query(API_URL_suggest,{
-    "inputs": prompt,
-    "parameters": {"return_full_text":False,},
-    "options":{"wait_for_model": True}
-    })
 
-    return output[0]['generated_text']
 
-# Streamlit app layout
+def get_title_suggestions(prompt):
+    response_stream = client.completions.create(
+    model="shivanikerai/Llama-2-7b-chat-hf-seo-optimised-title-suggestion-v1.0",
+    prompt = prompt,
+    temperature=0,
+    max_tokens=512
+    )
+    return response_stream
+
+
+def api_4(selected_dict, selected_keywords):
+    # Simulate a delay for the API call
+    # time.sleep(2)  # Simulate a 2-second delay
+    prompt = f"""[INST] <<SYS>> You are a helpful, respectful and honest assistant for ecommerce product title creation. <</SYS>>
+    Create a SEO optimized e-commerce product title for the keywords:{selected_keywords}
+    [Product Details]{selected_dict}[/Product Details]\n[/INST]
+    \n[Suggested Titles]"""
+    
+    response = get_title_suggestions(prompt)
+    print(response)
+    title_suggestions = response.choices[0].text
+    title_suggestions = title_suggestions.replace('[/Suggested Titles]', '')
+    title_suggestions = title_suggestions.strip()
+    titles = title_suggestions.split('\n')
+    unique_titles = list(set(titles))
+    print(unique_titles)
+    return unique_titles
+
+
+def api_5(titles, keywords):
+    # Simulate a delay for the API call and return a list of scores between 0 and 1
+    # time.sleep(2)  # Simulate a 2-second delay
+    relevance_score_input_data = {
+        "titles": titles,
+        "keywords": keywords
+        }
+    response = requests.post(f"{BASE_URL}/get_relevance_score/", json=relevance_score_input_data)
+    scores = response.json()
+    return scores
+
+def title_annotated(title_input, ner_result):
+    annotated_title = title_input
+
+    # Sort entities by their start position to handle them in the correct sequence
+    entities = sorted(ner_result, key=lambda x: title_input.lower().find(x.lower()))
+
+    # Apply HTML tags to each entity found in the title
+    for entity in entities:
+        start_index = title_input.lower().find(entity.lower())
+        if start_index != -1:  # Only proceed if the entity is found
+            original_text = title_input[start_index:start_index + len(entity)]
+            # Replace the original text with the annotated version in the title
+            annotated_title = annotated_title.replace(original_text,
+                                                      f"{original_text}<span style='color:green;'>({ner_result[entity]})</span>",
+                                                      1)
+
+    return annotated_title
+
+def attribute_dict(data_dict):
+    try:
+        inverted_dict = {}
+        for key, value in data_dict.items():
+            if value in inverted_dict:
+                if not isinstance(inverted_dict[value], list):
+                    inverted_dict[value] = [inverted_dict[value]]
+                inverted_dict[value].append(key)
+            else:
+                inverted_dict[value] = [key]
+        return inverted_dict
+    except Exception as e:
+        return ({})
+
+def convert_to_dictionary(input_string):
+    try:
+        input_string = input_string.replace('</s>', '')
+        input_string = input_string.replace("\n ","\n")
+        input_string = input_string.replace(" :",":")
+        input_string = input_string.replace("\n"," ")
+        data_dict = {}
+        for item in input_string.split('", "'):
+            key, value = item.split('": "')
+            key = key.strip('{}"')
+            value = value.strip('{}"')
+            data_dict[key] = value
+        # inverted_dict = {}
+        # for key, value in data_dict.items():
+        #     if value in inverted_dict:
+        #         if not isinstance(inverted_dict[value], list):
+        #             inverted_dict[value] = [inverted_dict[value]]
+        #         inverted_dict[value].append(key)
+        #     else:
+        #         inverted_dict[value] = [key]
+        return data_dict
+    except Exception as e:
+        print(f"\nAn error occurred: {e}\n{input_string}")
+        pass
+
+def reset_state():
+    st.session_state.clear()
+    st.session_state.step = 1
+
 def main():
-    
-    if ner_for_title("HP laptop"):
-      st.title("Product Attributes Decoding")
-    
-    # Input text box for the product title
-      title_input = st.text_input("Enter product title:")
-    
-    if st.button("Submit"):
-        # Perform NER on the input title
-        ner_result = ner_for_title(title_input)
-        #st.write(ner_result)
-        # Display the title with NER annotations
-        st.subheader("Artificial Intelligence")
-        st.write("created by NB")
-        
-        # Start from the original title and replace phrases one by one
-        annotated_title = title_input
-        
-        # Sort entities by their start position to handle them in the correct sequence
-        entities = sorted(ner_result, key=lambda x: title_input.lower().find(x.lower()))
-        
-        # Apply HTML tags to each entity found in the title
-        for entity in entities:
-            start_index = title_input.lower().find(entity.lower())
-            if start_index != -1:  # Only proceed if the entity is found
-                original_text = title_input[start_index:start_index + len(entity)]
-                # Replace the original text with the annotated version in the title
-                annotated_title = annotated_title.replace(original_text, 
-                    f"{original_text}<span style='color:green;'>({ner_result[entity]})</span>", 1)
-        
-        # Display the fully annotated title using HTML to allow styling
+    st.title("Product Title Generation")
+
+    # Step 1: User inputs the product title
+    if 'step' not in st.session_state:
+        st.session_state.step = 1
+
+    if st.session_state.step == 1:
+        title = st.text_input("Enter the product title:")
+        # title = title.replace('"', "'")
+        if st.button("Submit"):
+            with st.spinner("Analysing Title..."):
+                st.session_state.title = title
+                st.session_state.api_1_response = api_1(title)
+                st.session_state.api_1_response1 = attribute_dict(st.session_state.api_1_response)
+            st.session_state.step = 2
+
+    # Step 2: Display title and API 1 response
+    if st.session_state.step == 2:
+        st.write(f"Title: {st.session_state.title}")
+        annotated_title = title_annotated(st.session_state.title, st.session_state.api_1_response)
         st.markdown(annotated_title, unsafe_allow_html=True)
+        with st.spinner("Checking Product Category..."):
+            st.session_state.category = api_2(st.session_state.title, count = 5)
+            # sub_category = st.session_state.category.split("->")[-2:]
+            # st.session_state.sub_category = "->".join(sub_category)
+        with st.spinner("Collecting AMS search_terms..."):
+            st.session_state.keywords_with_sv = api_3(st.session_state.category, count = 100)
+            st.session_state.keywords = [index['input_search_term'] for index in st.session_state.keywords_with_sv]
+        st.session_state.step = 3
 
-        st.subheader("Suggested Title")
-        suggest_result = suggest_title(title_input)
-        st.write(suggest_result)
+    # Step 3: Display keywords and dictionary response with checkboxes
+    if st.session_state.step == 3:
+        st.write("This product is categorized under <span style='font-weight:bold; color:blue'>", st.session_state.category, "</span>", unsafe_allow_html=True)
 
-        
-        st.subheader("General Parameters")
-        # st.write("Length of Title           : ", len(title_input))
-        # st.write("Count of words            : ", len(title_input.split()))
-        # st.write("Count of attributes       : ", len(ner_result))
-        # st.write("Count of alpha-numeric    : ",sum(char.isalnum() for char in title_input))
-        # st.write("Count of non alpha-numeric: ",len(title_input)-sum(char.isalnum() or char == ' ' for char in title_input))
-        
-        st.write("Title length score",len_title(title_input))
-        st.write("Title simplicity", simplicity_score(title_input))
-        st.write("Title emphasis",  emphasis_score(title_input)) #duplicacy(title),
+        st.write("Select Product Attributes:")
+        selected_dict = {}
+        #st.write(st.session_state.api_1_response1)
+        for key, value in st.session_state.api_1_response1.items():
+            selected_dict[key] = []
+            for item in value:
+                if st.checkbox(f"{key}: {item}", key=f"{key}-{item}", value=True):
+                    selected_dict[key].append(item)
+
+        col1, col2 ,col3 = st.columns(3)
+        with col1:
+            new_key = st.text_input("",placeholder="Attribute", label_visibility ='collapsed')
+        with col2:
+            new_value = st.text_input("",placeholder="Attribute Value", label_visibility ='collapsed')
+        with col3:
+            
+            if st.button("Add"):
+                if new_key and new_value:
+                    if new_key in st.session_state.api_1_response1 and isinstance(st.session_state.api_1_response1[key], list):
+                        st.session_state.api_1_response1[new_key].append(new_value)
+                    else:
+                        st.session_state.api_1_response1[new_key] = [new_value]
+                    st.experimental_rerun()
+
+        st.write("Select AMS search_terms:")
+        col1, col2=st.columns(2)
+        with col1:
+            sorted_keywords_with_sv = sorted(st.session_state.keywords_with_sv, key=lambda x: x['search_volume'], reverse=True)
+            st.sesstion_state.display_keywords = [f"{index['input_search_term']} ({index['search_volume']})" for index in sorted_keywords_with_sv]
+            selected_display_keywords = st.multiselect("search_terms", options=st.session_state.display_keywords ,placeholder ="Select maximum of Six Search_terms", max_selections =6)
+            keyword_pattern = re.compile(r"^(.*) \(\d+\)$")
+            selected_keywords = [keyword_pattern.match(opt).group(1) for opt in selected_display_keywords if keyword_pattern.match(opt)]
+        with col2:
+            new_keyword = st.text_input("Add keyword:")
+            if st.button("Add Keyword"):
+                if new_keyword:
+                    st.session_state.keywords.append(new_keyword)
+                    st.experimental_rerun()
+
+        if st.button("Suggest Titles"):
+            with st.spinner("Suggesting New Titles..."):
+                new_selected_dict = {key: value for key, value in selected_dict.items() if len(value) != 0}
+                st.session_state.selected_dict = new_selected_dict
+                st.session_state.selected_keywords = selected_keywords
+                st.session_state.new_titles = api_4(selected_dict, selected_keywords)
+            st.session_state.step = 4
+
+    # Step 4: Display original and new product titles only after clicking "Suggest Titles"
+    if st.session_state.step == 4:
+        # st.write(st.session_state.selected_dict)
+        # st.write(st.session_state.selected_keywords)
+        st.write(f"Original Title:\n{st.session_state.title}")
+        st.write("New Product Titles:")
+        new_titles = st.session_state.new_titles
+        for index,title in enumarate(new_titles):
+            st.write(f"{index+1}. {title}")
+
+        titles = [st.session_state.title] + st.session_state.new_titles
+        keywords = st.session_state.keywords
+
+        if st.button("Get Scores"):
+            with st.spinner("Getting Scores..."):
+                st.session_state.scores = api_5(titles, keywords)
+            st.session_state.step = 5
+
+# Step 5: Display scores for each title on a new screen
+    if st.session_state.step == 5:
+        st.write("Product Titles with Scores:")
+        # titles = [st.session_state.title] + st.session_state.new_titles
+        title_scores = st.session_state.scores
+        for title_score in title_scores:
+            st.write(f"{title_score['title']}: {title_score['score']}")
+            st.progress(title_score['score'])
+
+    # Add Reset button
+    if st.button("Reset"):
+        reset_state()
+        st.experimental_rerun()
+
 if __name__ == "__main__":
     main()
